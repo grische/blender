@@ -1,0 +1,96 @@
+name: Create New Blender Release
+
+on:
+  schedule:
+    # Run every day at 18:00 UTC
+    - cron: "00 18 * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version which should be fetched"
+        required: false
+        default: "Beta"
+
+jobs:
+  create_tag:
+    name: Create downloadable release
+    runs-on: ubuntu-latest
+    env:
+      BLENDER_VERSION: "Beta"
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        os: ["windows", "macos", "linux"]
+    steps:
+      - name: Install xmllint
+        run: sudo apt-get install -y libxml2-utils
+
+      - name: Checkout Blender
+        uses: actions/checkout@v2
+        with:
+          path: blender.git
+          fetch-depth: 1
+          submodules: false
+
+      - name: Override Blender version to check
+        if: ${{ github.event.inputs.version }}
+        run: echo "::set-env name=BLENDER_VERSION::${{ github.event.inputs.version }}"
+
+      - name: Find latest Blender download
+        run: echo "::set-env name=BLENDER_FILENAME::$(bash ./blender.git/build_files/utils/fetch_builder_artifacts_names.sh ${{ env.BLENDER_VERSION }} ${{ matrix.os }} ${{ github.workspace }}/build)"
+
+      - name: Set Blender Tag
+        run: |
+          echo "::set-env name=BLENDER_TAG::v$(bash ./blender.git/build_files/utils/parse_version_from_filename.sh ${{ env.BLENDER_FILENAME }} full)"
+          echo "::set-env name=BLENDER_SHA_SHORT::$(bash ./blender.git/build_files/utils/parse_version_from_filename.sh ${{ env.BLENDER_FILENAME }} sha)"
+
+      - name: Check if tag exist
+        id: tag_exists
+        continue-on-error: true
+        run: |
+          ! curl -v --fail https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{ env.BLENDER_TAG }}
+
+      - name: Print warning if tag exists
+        if: steps.tag_exists.outcome != 'success'
+        run: |
+          echo "::warning ::Tag ${{ env.BLENDER_TAG }} seems to exist already."
+
+      - name: Checkout Blender (unshallow)
+        if: steps.tag_exists.outcome == 'success'
+        uses: actions/checkout@v2
+        with:
+          path: blender.git
+          fetch-depth: 0
+          submodules: false
+
+      - name: Set Blender SHA
+        if: steps.tag_exists.outcome == 'success'
+        working-directory: blender.git
+        run: echo "::set-env name=BLENDER_SHA::$(git rev-parse "${BLENDER_SHA_SHORT}")"
+
+      - name: Create Tag
+        if: steps.tag_exists.outcome == 'success'
+        run: |
+          curl --fail -X POST \
+          --url https://api.github.com/repos/${{ github.repository }}/git/refs \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "ref":"refs/tags/${{ env.BLENDER_TAG }}",
+            "sha":"${{ env.BLENDER_SHA }}"
+          }'
+
+      - name: Dispatch Release Creation
+        if: steps.tag_exists.outcome == 'success'
+        run: |
+          curl --fail -X POST \
+          --url https://api.github.com/repos/${{ github.repository }}/actions/workflows/blender_create_release_assets.yaml/dispatches \
+          --header 'authorization: token ${{ secrets.WORKFLOW_DISPATCH_PAT }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "ref": "${{ github.ref }}",
+            "inputs": {
+              "tag":"${{ env.BLENDER_TAG }}"
+            }
+          }'
