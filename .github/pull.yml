@@ -1,0 +1,15 @@
+version: "1"
+rules:
+  - base: master
+    upstream: blender:master
+    mergeMethod: hardreset
+    mergeUnstable: false
+  - base: blender-v2.83-release
+    upstream: blender:blender-v2.83-release
+    mergeMethod: hardreset
+    mergeUnstable: false
+  - base: blender-v2.90-release
+    upstream: blender:blender-v2.90-release
+    mergeMethod: hardreset
+    mergeUnstable: false
+label: ":penguin:"
