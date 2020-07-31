@@ -4,17 +4,12 @@
    See 'release/text/readme.html' for the end user read-me.
 
 
-Blender
-=======
+Blender Builder
+===============
 
-Blender is the free and open source 3D creation suite.
-It supports the entirety of the 3D pipeline-modeling, rigging, animation, simulation, rendering, compositing,
-motion tracking and video editing.
+This repository is only a mirror up blender/blender with additional build tools.
 
-.. figure:: https://code.blender.org/wp-content/uploads/2018/12/springrg.jpg
-   :scale: 50 %
-   :align: center
-
+PRs are only accepted to improve the CI pipelines, changes for Blender will be ignored.
 
 Project Pages
 -------------
