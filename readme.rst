@@ -3,6 +3,11 @@
    linking to external resources instead of including content in-line.
    See 'release/text/readme.html' for the end user read-me.
 
+|Create New Blender Release|
+
+.. |Create New Blender Release| image:: https://github.com/grische/blender/workflows/Create%20New%20Blender%20Release/badge.svg?event=schedule
+   :target: https://github.com/grische/blender/actions?query=workflow%3A%22Create+New+Blender+Release%22
+
 
 Blender Builder
 ===============
