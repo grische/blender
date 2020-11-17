@@ -68,9 +68,9 @@ jobs:
           download="$(mktemp -d)"
           bash ./blender.git/build_files/utils/fetch_builder_artifacts.sh ${{ github.event.inputs.tag }} ${{ matrix.os }} "${download}"
           export BLENDER_FILEPATH_LOCAL=$(ls -1 "${download}"/* | head -n 1) && echo ${BLENDER_FILEPATH_LOCAL}
-          echo "::set-env name=BLENDER_FILEPATH::${BLENDER_FILEPATH_LOCAL}"
-          echo "::set-env name=BLENDER_FILENAME::$(basename "${BLENDER_FILEPATH_LOCAL}")"
-          echo "::set-env name=MIME_TYPE::$(file --mime-type -b "${BLENDER_FILEPATH_LOCAL}")"
+          echo "BLENDER_FILEPATH=${BLENDER_FILEPATH_LOCAL}" >> $GITHUB_ENV
+          echo "BLENDER_FILENAME=$(basename "${BLENDER_FILEPATH_LOCAL}")" >> $GITHUB_ENV
+          echo "MIME_TYPE=$(file --mime-type -b "${BLENDER_FILEPATH_LOCAL}")" >> $GITHUB_ENV
 
       - name: Upload ${{matrix.os}} Release
         id: upload-release-asset

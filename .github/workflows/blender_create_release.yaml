@@ -35,15 +35,15 @@ jobs:
 
       - name: Override Blender version to check
         if: ${{ github.event.inputs.version }}
-        run: echo "::set-env name=BLENDER_VERSION::${{ github.event.inputs.version }}"
+        run: echo "BLENDER_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
       - name: Find latest Blender download
-        run: echo "::set-env name=BLENDER_FILENAME::$(bash ./blender.git/build_files/utils/fetch_builder_artifacts_names.sh ${{ env.BLENDER_VERSION }} ${{ matrix.os }} ${{ github.workspace }}/build)"
+        run: echo "BLENDER_FILENAME=$(bash ./blender.git/build_files/utils/fetch_builder_artifacts_names.sh ${{ env.BLENDER_VERSION }} ${{ matrix.os }} ${{ github.workspace }}/build)" >> $GITHUB_ENV
 
       - name: Set Blender Tag
         run: |
-          echo "::set-env name=BLENDER_TAG::v$(bash ./blender.git/build_files/utils/parse_version_from_filename.sh ${{ env.BLENDER_FILENAME }} full)"
-          echo "::set-env name=BLENDER_SHA_SHORT::$(bash ./blender.git/build_files/utils/parse_version_from_filename.sh ${{ env.BLENDER_FILENAME }} sha)"
+          echo "BLENDER_TAG=v$(bash ./blender.git/build_files/utils/parse_version_from_filename.sh ${{ env.BLENDER_FILENAME }} full)" >> $GITHUB_ENV
+          echo "BLENDER_SHA_SHORT=$(bash ./blender.git/build_files/utils/parse_version_from_filename.sh ${{ env.BLENDER_FILENAME }} sha)" >> $GITHUB_ENV
 
       - name: Check if tag exist
         id: tag_exists
@@ -67,7 +67,7 @@ jobs:
       - name: Set Blender SHA
         if: steps.tag_exists.outcome == 'success'
         working-directory: blender.git
-        run: echo "::set-env name=BLENDER_SHA::$(git rev-parse "${BLENDER_SHA_SHORT}")"
+        run: echo "BLENDER_SHA=$(git rev-parse "${BLENDER_SHA_SHORT}")" >> $GITHUB_ENV
 
       - name: Create Tag
         if: steps.tag_exists.outcome == 'success'
