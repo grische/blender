@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["windows", "macos", "linux"]
+        os: ["windows", "macos-arm", "macos.[^a]", "linux"]
     steps:
       - name: Install xmllint
         run: sudo apt-get install -y libxml2-utils
